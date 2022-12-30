@@ -9,7 +9,13 @@
 
 
 
-
+// can i use static bool in supermarket for sort indicator?
+// can i create L_count even though L_print returns a number (but prints before)
+// can i create L_insertToEnd in List.c?
+// general L_delete + L_free, just add bool? --- didnt see generic List file
+// can i use isInit in main? (added logic in main)
+// should the program work if the user only deletes the binary file?
+// why check binary files write but not regular file write?
 
 int menu();
 
@@ -22,29 +28,22 @@ const char* menuStrings[eNofOptions] = { "Show SuperMarket", "Add Product",
 int main()
 {
 	SuperMarket	market;
-	if (!initSuperMarket(&market))
-	{
-		printf("error init  Super Market");
-		return 0;
-	}
 
 	FILE* binMarketFile = fopen("SuperMarket", "rb");
 	if (binMarketFile == NULL)
 	{
 		printf("Error open company file\n");
 	}
-	else
-	{
-		readMarketAndProductsFromFile(&market, binMarketFile);
-	}
 	FILE* customerFile = fopen("Customers.txt", "r");
 	if (customerFile == NULL)
 	{
 		printf("Error opening the write customers file\n");
 	}
-	else
+
+	if (!initSuperMarket(&market, binMarketFile, customerFile))
 	{
-		readCustomersFromFile(&market, customerFile);
+		printf("error init  Super Market");
+		return 0;
 	}
 
 	int option;
@@ -118,7 +117,7 @@ int main()
 		return 0;
 	}
 
-	writeMarketAndProductsToFile(&market, binMarketFile);
+	writeMarketAndProductsToBinFile(&market, binMarketFile);
 	writeCustomersToFile(&market, customerFile);
 	freeMarket(&market);
 	fclose(customerFile);

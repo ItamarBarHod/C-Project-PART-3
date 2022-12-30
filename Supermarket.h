@@ -16,8 +16,7 @@ typedef struct
 	LIST		Products;
 }SuperMarket;
 
-
-int		initSuperMarket(SuperMarket* pMarket);
+int		initSuperMarket(SuperMarket* pMarket, FILE* nameAndProductsFile, FILE* customerFile);
 void	printSuperMarket(const SuperMarket* pMarket);
 int		addProduct(SuperMarket* pMarket);
 int		addNewProduct(SuperMarket* pMarket, const char* barcode);
@@ -29,9 +28,10 @@ int		doPayment(SuperMarket* pMarket);
 Customer* getCustomerShopPay(SuperMarket* pMarket);
 void fillCart(SuperMarket* pMarket, ShoppingCart* pCart);
 
-void	printProductByType(SuperMarket* pMarket);
+void	printProductByType(const SuperMarket* pMarket);
 void	printAllProducts(const SuperMarket* pMarket);
 void	printAllCustomers(const SuperMarket* pMarket);
+Customer* initCustomerFromFile(SuperMarket* pMarket, FILE* file);
 
 
 // int		getProductIndexByBarcode(SuperMarket* pMarket, const char* barcode);
@@ -47,8 +47,9 @@ void	freeMarket(SuperMarket* pMarket);
 void SortCustomersByAttribute(SuperMarket* pMarket);
 void findCustomer(const SuperMarket* pMarket);
 void writeCustomersToFile(const SuperMarket* pMarket, FILE* file);
-void writeMarketAndProductsToFile(const SuperMarket* pMarket, FILE* file);
-void readMarketAndProductsFromFile(SuperMarket* pMarket, FILE* file);
-void readCustomersFromFile(SuperMarket* pMarket, FILE* file);
-int readProductsFromFile(SuperMarket* pMarket, FILE* file);
+void writeMarketAndProductsToBinFile(SuperMarket* pMarket, FILE* file);
+int readMarketNameAndAddressFromBinFile(SuperMarket* pMarket, FILE* file);
+int readCustomersFromFile(SuperMarket* pMarket, FILE* file);
+int readProductsFromBinFile(SuperMarket* pMarket, FILE* file);
+int insertProductSorted(SuperMarket* pMarket, Product* pProd, const char* barcode);
 

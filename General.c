@@ -115,6 +115,40 @@ int		checkEmptyString(char* str)
 	return 1;
 }
 
+int writeDynStrToBinFile(char* str, FILE* file)
+{
+	size_t size = strlen(str) + 1; // '\0'
+	if (fwrite(&size, sizeof(int), 1, file) != 1)
+	{
+		return 0;
+	}
+	if (fwrite(str, sizeof(char), size, file) != size)
+	{
+		return 0;
+	}
+	return 1;
+}
+
+char* readDynStrFromBinFile(FILE* file)
+{
+	int size = 0;
+	if (fread(&size, sizeof(int), 1, file) != 1)
+	{
+		return NULL;
+	}
+	char* string = (char*)calloc(size, sizeof(char));
+	if (!string)
+	{
+		return NULL;
+	}
+	if (fread(string, sizeof(char), size, file) != size)
+	{
+		free(string);
+		return NULL;
+	}
+	return string;
+}
+
 void generalArrayFunction(void* arr, size_t arrSize, size_t structSize, void(*f)(void*))
 {
 	for (int i = 0; i < arrSize; i++)

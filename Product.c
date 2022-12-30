@@ -143,14 +143,54 @@ int isSameType(const void* pP1, const eProductType pP2)
 	return (prod1->type == pP2);
 }
 
-void writeProductToFile(Product* pProduct, FILE* file)
+int writeProductToFile(Product* pProduct, FILE* file)
 {
-	fwrite(pProduct, sizeof(Product), 1, file);
+	if (fwrite(&pProduct->name, sizeof(char), NAME_LENGTH + 1, file) != NAME_LENGTH + 1)
+	{
+		return 0;
+	}
+	if (fwrite(&pProduct->barcode, sizeof(char), BARCODE_LENGTH + 1, file) != BARCODE_LENGTH + 1)
+	{
+		return 0;
+	}
+	if (fwrite(&pProduct->type, sizeof(int), 1, file) != 1)
+	{
+		return 0;
+	}
+	if (fwrite(&pProduct->price, sizeof(float), 1, file) != 1)
+	{
+		return 0;
+	}
+	if (fwrite(&pProduct->count, sizeof(int), 1, file) != 1)
+	{
+		return 0;
+	}
+	return 1;
 }
 
-void readProductFromFile(Product* pProduct, FILE* file)
+Product* readProductFromFile(Product* pProduct, FILE* file)
 {
-	fread(pProduct, sizeof(Product), 1, file);
+	if (fread(&pProduct->name, sizeof(char), NAME_LENGTH + 1, file) != NAME_LENGTH + 1)
+	{
+		return NULL;
+	}
+	if (fread(&pProduct->barcode, sizeof(char), BARCODE_LENGTH + 1, file) != BARCODE_LENGTH + 1)
+	{
+		return NULL;
+	}
+	if (fread(&pProduct->type, sizeof(int), 1, file) != 1)
+	{
+		return NULL;
+	}
+	if (fread(&pProduct->price, sizeof(float), 1, file) != 1)
+	{
+		return NULL;
+	}
+	if (fread(&pProduct->count, sizeof(int), 1, file) != 1)
+	{
+		return NULL;
+	}
+	return pProduct;
 }
 
 void	freeProduct(Product* pProduct)

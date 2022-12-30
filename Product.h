@@ -22,8 +22,8 @@ void	printProduct(const Product* pProduct);
 
 int compareByBarcode(const void* pP1, const void* pP2);
 int isSameType(const void* pP1, const eProductType pP2);
-void writeProductToFile(Product* pProduct, FILE* file);
-void readProductFromFile(Product* pProduct, FILE* file);
+int writeProductToFile(Product* pProduct, FILE* file);
+Product* readProductFromFile(Product* pProduct, FILE* file);
 
 
 

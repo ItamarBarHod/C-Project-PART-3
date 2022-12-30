@@ -17,4 +17,4 @@ void	freeElements(char** elements, int count);
 
 
 int readAddressFromFile(Address* pAdd, FILE* file);
-void writeAddressToFile(Address* pAdd, FILE* file);
+int writeAddressToFile(Address* pAdd, FILE* file);

@@ -143,10 +143,36 @@ void	freeAddress(Address* pAd)
 
 int readAddressFromFile(Address* pAdd, FILE* file)
 {
-	if (!fread(pAdd, sizeof(Address), 1, file)) return 0;
+	if (fread(&pAdd->num, sizeof(int), 1, file) != 1)
+	{
+		return 0;
+	}
+	pAdd->street = readDynStrFromBinFile(file);
+	if (!pAdd->street)
+	{
+		return 0;
+	}
+	pAdd->city = readDynStrFromBinFile(file);
+	if (!pAdd->city)
+	{
+		return 0;
+	}
 	return 1;
+
 }
-void writeAddressToFile(Address* pAdd, FILE* file)
+int writeAddressToFile(Address* pAdd, FILE* file)
 {
-	fwrite(pAdd, sizeof(Address), 1, file);
+	if (fwrite(&pAdd->num, sizeof(int), 1, file) != 1)
+	{
+		return 0;
+	}
+	if (writeDynStrToBinFile(pAdd->street, file) != 1)
+	{
+		return 0;
+	}
+	if (writeDynStrToBinFile(pAdd->city, file) != 1)
+	{
+		return 0;
+	}
+	return 1;
 }

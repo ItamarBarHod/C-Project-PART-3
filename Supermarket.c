@@ -12,17 +12,38 @@
 
 
 
-int		initSuperMarket(SuperMarket* pMarket)
+int		initSuperMarket(SuperMarket* pMarket, FILE* nameAndProductsFile, FILE* customerFile)
 {
-	pMarket->customerCount = 0;
-	pMarket->customerArr = NULL;
-	L_init(&pMarket->Products);
+	if (!readMarketNameAndAddressFromBinFile(pMarket, nameAndProductsFile)) // failed to read from binary
+	{
+		pMarket->name = getStrExactLength("Enter market name"); // init name
+		if (!pMarket->name)
+		{
+			printf("market name memory error\n");
+			return 0;
+		}
+		if (!initAddress(&pMarket->location)) // init address
+		{
+			printf("address memory error\n");
+			return 0;
+		}
+	}
+	if (!readCustomersFromFile(pMarket, customerFile))
+	{
+		pMarket->customerCount = 0;
+		pMarket->customerArr = NULL;
+	}
+	L_init(&pMarket->Products); // init list
 	if (!&pMarket->Products)
 	{
+		printf("failed init list\n");
 		return 0;
 	}
-	pMarket->name = getStrExactLength("Enter market name");
-	return initAddress(&pMarket->location);
+	if (!readProductsFromBinFile(pMarket, nameAndProductsFile)) // failed to read products
+	{
+		printf("no products from file\n");
+	}
+	return 1;
 }
 
 void	printSuperMarket(const SuperMarket* pMarket)
@@ -83,7 +104,7 @@ int		addNewProduct(SuperMarket* pMarket, const char* barcode)
 	return 1;
 }
 
-int insertProductSorted(SuperMarket* pMarket, Product* pProd, char* barcode)
+int insertProductSorted(SuperMarket* pMarket, Product* pProd, const char* barcode)
 {
 	Product* tmp = (Product*)pMarket->Products.head.next->key;
 	if (strcmp(tmp->barcode, barcode) > 0) // insert to start O(1)
@@ -297,7 +318,7 @@ Product* getProductAndCount(SuperMarket* pMarket, int* pCount)
 	return pProd;
 }
 
-void	printProductByType(SuperMarket* pMarket)
+void	printProductByType(const SuperMarket* pMarket)
 {
 	if (pMarket->Products.head.next == NULL)
 	{
@@ -317,14 +338,6 @@ void	printProductByType(SuperMarket* pMarket)
 		}
 		tmpProd = tmpProd->next;
 	}
-	//for (int i = 0; i < pMarket->productCount; i++)
-	//{
-	//	if (pMarket->Products == type)
-	//	{
-	//		count++;
-	//		printProduct(pMarket->productArr[i]);
-	//	}
-	//}
 	if (count == 0)
 		printf("There are no product of type %s in market %s\n", getProductTypeStr(type), pMarket->name);
 }
@@ -342,8 +355,9 @@ void SortCustomersByAttribute(SuperMarket* pMarket)
 		printf("Error: no customers exist yet\n");
 		return;
 	}
-	int result = getCustomerAttribute();
+	int result = getCustomerSortAttribute();
 	qsort(pMarket->customerArr, pMarket->customerCount, sizeof(Customer), customerAttr[result]);
+	generalArrayFunction(pMarket->customerArr, pMarket->customerCount, sizeof(Customer), printCustomer);
 	isSorted = True;
 }
 
@@ -363,6 +377,7 @@ void findCustomer(const SuperMarket* pMarket)
 	Customer tempCust;
 	tempCust.name = name;
 	Customer* result = (Customer*)bsearch(&tempCust, pMarket->customerArr, pMarket->customerCount, sizeof(Customer), compareByName);
+	free(name);
 	if (!result)
 	{
 		printf("Customer not found\n");
@@ -377,48 +392,10 @@ void	freeMarket(SuperMarket* pMarket)
 {
 	free(pMarket->name);
 	freeAddress(&pMarket->location);
-	L_free(&pMarket->Products, True, free);
-	//for (int i = 0; i < pMarket->productCount; i++)
-	//{
-	//	freeProduct(pMarket->productArr[i]);
-	//	free(pMarket->productArr[i]);
-	//}
-	//free(pMarket->productArr);
-
+	L_free(&pMarket->Products, free);
 	generalArrayFunction(pMarket->customerArr, pMarket->customerCount, sizeof(Customer), freeCustomer);
 	free(pMarket->customerArr);
 }
-
-//void	getUniquBarcode(char* barcode, SuperMarket* pMarket)
-//{
-//	int cont = 1;
-//	while (cont)
-//	{
-//		getBorcdeCode(barcode);
-//		int index = getProductIndexByBarcode(pMarket, barcode);
-//		if (index == -1)
-//			cont = 0;
-//		else
-//			printf("This product already in market\n");
-//	}
-//}
-
-//int getProductIndexByBarcode(SuperMarket* pMarket, const char* barcode)
-//{
-//	if (pMarket->Products.head.next == NULL)
-//	{
-//		return -1;
-//	}
-//	L_find
-//	/*for (int i = 0; i < pMarket->productCount; i++)
-//	{
-//		if (isProduct(pMarket->productArr[i], barcode))
-//			return i;
-//	}
-//	return -1;*/
-//
-//}
-
 
 Product* getProductByBarcode(SuperMarket* pMarket, const char* barcode)
 {
@@ -428,19 +405,13 @@ Product* getProductByBarcode(SuperMarket* pMarket, const char* barcode)
 	}
 	NODE* tmp = pMarket->Products.head.next;
 	Product tempProd;
-	strcpy(&tempProd.barcode, barcode);
+	strcpy(tempProd.barcode, barcode);
 	tmp = L_find(tmp, &tempProd, compareByBarcode);
 	if (!tmp) // not found
 	{
 		return NULL;
 	}
 	return tmp->key;
-	//for (int i = 0; i < pMarket->productCount; i++)
-	//{
-	//	if (isProduct(pMarket->productArr[i], barcode))
-	//		return pMarket->productArr[i];
-	//}
-
 }
 
 Customer* FindCustomerByName(SuperMarket* pMarket, const char* name)
@@ -453,69 +424,81 @@ Customer* FindCustomerByName(SuperMarket* pMarket, const char* name)
 	return  NULL;
 }
 
-void writeMarketAndProductsToFile(const SuperMarket* pMarket, FILE* file)
+void writeMarketAndProductsToBinFile(SuperMarket* pMarket, FILE* file)
 {
-	fwrite(pMarket->name, sizeof(pMarket->name) + 1, 1, file); // name
-	writeAddressToFile(&pMarket->location, file); // address
+	if (writeDynStrToBinFile(pMarket->name, file) != 1) // name
+	{
+		fclose(file);
+		return;
+	}
+	if (writeAddressToFile(&pMarket->location, file) != 1) // address
+	{
+		fclose(file);
+		return;
+	}
 	if (pMarket->Products.head.next == NULL)
 	{
 		return;
 	}
-	int productCount = L_count(&pMarket->Products);
-	fwrite(&productCount, sizeof(int), 1, file);
-	NODE* tmp = pMarket->Products.head.next;
+	NODE* tmp = pMarket->Products.head.next; // products
 	while (tmp)
 	{
-		writeProductToFile(tmp->key, file);
+		if (writeProductToFile(tmp->key, file) != 1)
+		{
+			fclose(file);
+			return;
+		}
 		tmp = tmp->next;
 	}
 }
 
-void readMarketAndProductsFromFile(SuperMarket* pMarket, FILE* file)
+int readMarketNameAndAddressFromBinFile(SuperMarket* pMarket, FILE* file)
 {
-	size_t len;
-	fread(&len, sizeof(int), 1, file);
-	char* marketName = (char*)malloc(len * sizeof(char));
-	if (!marketName)
+	if (file == NULL)
 	{
-		return;
+		return 0;
 	}
-	fread(marketName, sizeof(char), len, file);
-	marketName[len - 1] = '\0'; // needed?
+	pMarket->name = readDynStrFromBinFile(file);
+	if (!pMarket->name)
+	{
+		printf("company file is empty\n");
+		return 0;
+	}
 	if (!readAddressFromFile(&pMarket->location, file))
 	{
-		free(marketName);
-		return;
+		free(pMarket->name);
+		return 0;
 	}
-	if (!readProductsFromFile(&pMarket, file))
-	{
-		free(marketName);
-		return;
-	}
+	return 1;
 }
 
-int readProductsFromFile(SuperMarket* pMarket, FILE* file)
+int readProductsFromBinFile(SuperMarket* pMarket, FILE* file)
 {
-	size_t len;
-	fread(&len, sizeof(int), 1, file);
-	NODE* pMarketNodes = NULL;
-	for (int i = 0; i < len; i++) // while !eof  ?
+	if (file == NULL)
+	{
+		return 0;
+	}
+	while (!feof(file))
 	{
 		Product* newProd = (Product*)malloc(sizeof(Product));
 		if (!newProd)
 		{
 			return 0;
 		}
-		readProductFromFile(newProd, file);
+		newProd = readProductFromFile(newProd, file);
+		if (!newProd)
+		{
+			free(newProd);
+			return 0;
+		}
 		NODE* newNode = (NODE*)malloc(sizeof(NODE));
 		if (!newNode)
 		{
 			free(newProd);
 			return 0;
 		}
-		L_insert(pMarketNodes, newProd);
+		L_insert(&pMarket->Products.head, newProd);
 	}
-	pMarket->Products.head.next = pMarketNodes;
 	return 1;
 }
 
@@ -529,42 +512,56 @@ void writeCustomersToFile(const SuperMarket* pMarket, FILE* file)
 	}
 }
 
-void readCustomersFromFile(SuperMarket* pMarket, FILE* file)
+int readCustomersFromFile(SuperMarket* pMarket, FILE* file)
 {
-	size_t result = 0;
-	fscanf(file, "%d", &result);
-	if (result == 0)
+	if (file == NULL)
 	{
-		return;
+		return 0;
 	}
-	pMarket->customerCount = result;
-	Customer* customerArr = (Customer*)malloc(pMarket->customerCount * sizeof(Customer));
-	if (!customerArr)
+	size_t size = 0;
+	fscanf(file, "%zu", &size);
+	if (size == 0)
 	{
-		printf("error initializing customers from file\n");
-		return;
+		return 0;
 	}
-	for (int i = 0; i < pMarket->customerCount; i++)
+	Customer* tempCustomerArr = (Customer*)malloc(size * sizeof(Customer));
+	if (!tempCustomerArr)
+	{
+		printf("error initializing customers memory\n");
+		return 0;
+	}
+	for (int i = 0; i < size; i++)
+	{
+		Customer* tempCustomer = initCustomerFromFile(pMarket, file);
+		if (!tempCustomer)
+		{
+			return 0;
+		}
+		tempCustomerArr[i] = *tempCustomer;
+	}
+	pMarket->customerCount = size;
+	pMarket->customerArr = tempCustomerArr;
+	return 1;
+}
+
+Customer* initCustomerFromFile(SuperMarket* pMarket, FILE* file)
+{
 	{
 		size_t customerNameLength = 0;
-		fscanf(file, "%d", &customerNameLength);
+		fscanf(file, "%zu", &customerNameLength);
 		Customer* tempCustomer = (Customer*)malloc(sizeof(Customer));
 		if (!tempCustomer)
 		{
-			return;
+			printf("error initializing customer\n");
+			return 0;
 		}
-		tempCustomer->name = (char*)malloc(customerNameLength * sizeof(char));
-		if (!tempCustomer->name)
+		tempCustomer->name = (char*)calloc(customerNameLength, sizeof(char));
+		if (!&tempCustomer->name)
 		{
-			free(tempCustomer);
 			printf("error initializing customer name from file\n");
-			return;
+			return 0;
 		}
-		tempCustomer->name[customerNameLength - 1] = '\0'; // temp fix, why strlen 14?
-		//printf("tempCustomer: %s length: %d sizet: %d\n", tempCustomer->name, strlen(tempCustomer->name, customerNameLength)); 
-		// system("pause\n");
-		readCustomerFromFile(tempCustomer, file);
-		customerArr[i] = *tempCustomer;
+		tempCustomer = readCustomerFromFile(tempCustomer, file);
+		return tempCustomer;
 	}
-	pMarket->customerArr = customerArr;
 }

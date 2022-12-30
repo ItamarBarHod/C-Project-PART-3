@@ -44,7 +44,7 @@ int compareByShopTimes(const void* pC1, const void* pC2)
 {
 	Customer* cust1 = (Customer*)pC1;
 	Customer* cust2 = (Customer*)pC2;
-	return cust1->shopTimes - cust2->shopTimes;
+	return (cust1->shopTimes - cust2->shopTimes);
 }
 
 int compareByTotalSpend(const void* pC1, const void* pC2)
@@ -93,7 +93,7 @@ void	freeCustomer(Customer* pCust)
 	free(pCust->name);
 }
 
-eCustomerAttribute getCustomerAttribute()
+eCustomerAttribute getCustomerSortAttribute()
 {
 	int option;
 	printf("\n\n");
@@ -112,11 +112,13 @@ eCustomerAttribute getCustomerAttribute()
 
 void writeCustomerToFile(Customer* pCustomer, FILE* file)
 {
-	fprintf(file, "%d %s\n%d %f\n", (strlen(pCustomer->name) + 1), pCustomer->name, pCustomer->shopTimes, pCustomer->totalSpend);
+	size_t uNameLength = strlen(pCustomer->name) + 1; // +1 for /0
+	fprintf(file, "%zu %s\n%d %f\n", uNameLength, pCustomer->name, pCustomer->shopTimes, pCustomer->totalSpend);
 }
 
-void readCustomerFromFile(Customer* pCustomer, FILE* file)
+Customer* readCustomerFromFile(Customer* pCustomer, FILE* file)
 {
 	fscanf(file, "%s\n%d %f\n", pCustomer->name, &pCustomer->shopTimes, &pCustomer->totalSpend);
 	pCustomer->pCart = NULL;
+	return pCustomer;
 }

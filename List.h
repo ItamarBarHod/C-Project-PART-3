@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef enum { False, True } BOOL;	// a boolean type
 
@@ -21,8 +22,8 @@ typedef struct
 
 int L_init(LIST* pList);					// create new list
 NODE* L_insert(NODE* pNode, void* Value);	// add new node after *pNode
-BOOL L_delete(NODE* pNode, BOOL isFreeData, void(*freeData)(void*));				// erase node after *pNode
+BOOL L_delete(NODE* pNode, void(*freeData)(void*));				// erase node after *pNode
 NODE* L_find(NODE* pNode, void* Value, int(*compare)(const void*, const void*));		// return a pointer to the node 
-BOOL L_free(LIST* pList, BOOL isFreeData, void(*freeData)(void*));				// free list memory
-int L_print(const LIST* pList, void(*printFunc)(void*));					// print the list content
+BOOL L_free(LIST* pList, void(*freeData)(void*));				// free list memory
+int L_print(const LIST* pList, void(*print)(const void*));					// print the list content
 int L_count(const LIST* pList);

@@ -21,7 +21,7 @@ static int (*customerAttr[eNofCustomerAttribute])(const void*, const void*) = { 
 
 
 void writeCustomerToFile(Customer* pCustomer, FILE* file);
-void readCustomerFromFile(Customer* pCustomer, FILE* file);
+Customer* readCustomerFromFile(Customer* pCustomer, FILE* file);
 int		initCustomer(Customer* pCustomer);
 void	printCustomer(const Customer* pCustomer);
 
@@ -31,4 +31,4 @@ void	pay(Customer* pCustomer);
 
 void	freeCustomer(Customer* pCust);
 
-eCustomerAttribute getCustomerAttribute();
+eCustomerAttribute getCustomerSortAttribute();

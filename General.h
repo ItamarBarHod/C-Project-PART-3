@@ -15,5 +15,8 @@ int		getPositiveInt(const char* msg);
 int		countCharInString(const char* str, char tav);
 int		checkEmptyString(char* str);
 
+int writeDynStrToBinFile(char* str, FILE* file);
+char* readDynStrFromBinFile(FILE* file);
+
 #endif
 

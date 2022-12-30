@@ -46,22 +46,16 @@ NODE* L_insert(NODE* pNode, void* Value)
 // Input:	pointer to the node BEFORE the node to be deleted 
 // Output:	TRUE if succeeded
 //////////////////////////////////////////////////////////////
-BOOL L_delete(NODE* pNode, BOOL isFreeData, void(*freeData)(void*))
+BOOL L_delete(NODE* pNode, void (*freeFunc)(void*))
 {
 	NODE* tmp;
 
 	if (!pNode || !(tmp = pNode->next)) return False;
 
 	pNode->next = tmp->next;
-	if (isFreeData)
-	{
-		freeData(tmp->key);
-		free(tmp);
-	}
-	else
-	{
-		free(tmp);
-	}
+	if (freeFunc != NULL)
+		freeFunc(tmp->key);
+	free(tmp);
 	return True;
 }
 
@@ -73,12 +67,13 @@ BOOL L_delete(NODE* pNode, BOOL isFreeData, void(*freeData)(void*))
 //			a value to be found
 // Output:	pointer to the node containing the Value
 /////////////////////////////////////////////////////////
-NODE* L_find(NODE* pNode, void* Value, int(*compare)(const void*, const void*))
+NODE* L_find(NODE* pNode, void* value, int(*compare)(const void*, const void*))
 {
 	NODE* temp = NULL;
+	if (!pNode) return NULL;
 	while (pNode != NULL)
 	{
-		if (compare(pNode->key, Value) == 0)
+		if (compare(pNode->key, value) == 0)
 		{
 			temp = pNode;
 			break;
@@ -95,15 +90,21 @@ NODE* L_find(NODE* pNode, void* Value, int(*compare)(const void*, const void*))
 // Input:	pointer to the list structure
 // Output:	TRUE if succeeded
 ////////////////////////////////////////////////
-BOOL L_free(LIST* pList, BOOL isFreeData, void(*freeData)(void*))
+BOOL L_free(LIST* pList, void (*freeFunc)(void*))
 {
 	NODE* tmp;
 
 	if (!pList) return False;
+	tmp = &(pList->head);
+	BOOL res = True;
+	while (res)
+	{
+		res = L_delete(tmp, freeFunc);
+	}
 
-	for (tmp = &(pList->head); L_delete(tmp, isFreeData, freeData); );
 	return True;
 }
+
 
 
 ////////////////////////////////////////////////
@@ -112,7 +113,7 @@ BOOL L_free(LIST* pList, BOOL isFreeData, void(*freeData)(void*))
 // Input:	pointer to the list structure
 // Output:	a number of the printed elements
 ////////////////////////////////////////////////
-int L_print(const LIST* pList, void(*printFunc)(void*))
+int L_print(const LIST* pList, void(*print)(const void*))
 {
 	NODE* tmp;
 	int		c = 0;
@@ -121,7 +122,7 @@ int L_print(const LIST* pList, void(*printFunc)(void*))
 
 	printf("\n");
 	for (tmp = pList->head.next; tmp; tmp = tmp->next, c++)
-		printFunc(tmp->key);
+		print(tmp->key);
 	printf("\n");
 	return c;
 }
