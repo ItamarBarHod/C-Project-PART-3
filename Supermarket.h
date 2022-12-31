@@ -13,15 +13,13 @@
 #include "General.h"
 #include "ShoppingCart.h"
 
-static BOOL isSorted = False;
-
 typedef struct
 {
 	char* name;
 	Address		location;
 	Customer* customerArr;
 	int			customerCount;
-	LIST		Products;
+	LIST		products;
 }SuperMarket;
 
 int		initSuperMarket(SuperMarket* pMarket, FILE* nameAndProductsFile, FILE* customerFile);
@@ -51,17 +49,17 @@ Customer* findCustomerByName(const SuperMarket* pMarket, const char* name);
 Customer* getCustomerWhoShop(SuperMarket* pMarket);
 Product* getProductAndCount(SuperMarket* pMarket, int* pCount);
 
-int freeMarket(SuperMarket* pMarket, FILE* binMarketFile, FILE* customerFile);
+void freeMarket(SuperMarket* pMarket);
+int saveMarket(SuperMarket* pMarket, FILE* binMarketFile, FILE* customerFile);
 void SortCustomersByAttribute(SuperMarket* pMarket);
 void findCustomer(const SuperMarket* pMarket);
 void writeCustomersToFile(const SuperMarket* pMarket, FILE* file);
-void writeMarketAndAddressToBinFile(SuperMarket* pMarket, FILE* file);
-void writeProductsToBinFile(SuperMarket* pMarket, FILE* file);
+int writeMarketToBinFile(SuperMarket* pMarket, FILE* file);
+int writeProductsToBinFile(SuperMarket* pMarket, FILE* file);
 int readMarketNameAndAddressFromBinFile(SuperMarket* pMarket, FILE* file);
 int readCustomersFromFile(SuperMarket* pMarket, FILE* file);
 int readProductsFromBinFile(SuperMarket* pMarket, FILE* file);
 int buildMarketListFromBinFile(SuperMarket* pMarket, FILE* file, int listSize);
-int insertProductSorted(SuperMarket* pMarket, Product* pProd, const char* barcode);
 void searchByName(const SuperMarket* pMarket);
 void searchByNumbers(const SuperMarket* pMarket, const Customer* cust, int(*compareFunc)(const void*, const void*));
 

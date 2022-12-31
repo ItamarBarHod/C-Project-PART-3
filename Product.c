@@ -196,7 +196,6 @@ Product* readProductFromFile(FILE* file)
 	{
 		return NULL;
 	}
-	printProduct(newProd);
 	return newProd;
 }
 

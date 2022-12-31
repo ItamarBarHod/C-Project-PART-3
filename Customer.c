@@ -35,9 +35,9 @@ void	printCustomer(const Customer* pCustomer)
 
 int compareByName(const void* pC1, const void* pC2)
 {
-	const Customer* cust1 = (Customer*)pC1;
-	const Customer* cust2 = (Customer*)pC2;
-	return (strcmp(cust1->name, cust2->name));
+	const Customer cust1 = *(const Customer*)pC1;
+	const Customer cust2 = *(const Customer*)pC2;
+	return strcmp(cust1.name, cust2.name);
 }
 
 int compareByShopTimes(const void* pC1, const void* pC2)

@@ -6,14 +6,11 @@
 #include "General.h"
 #include "Supermarket.h"
 
-// can i use static bool in supermarket for sort indicator?
-// can i create L_insertToEnd in List.c?
+// can i use the static sort variable for sort indicator?
+// can i use the L_insertSorted in List.c?
 // generic list free just means inserting freeFunc as null?
 // why check binary files write but not regular file write?
-// customer pay count doesnt increase on exitmarket?
-// check if free'd structs succeeded? (L_free for example)
 
-// TODO - save list in reverse to file
 // TODO - freeShoppingCart 
 
 int menu();
@@ -34,7 +31,7 @@ int main()
 	FILE* customerFile = fopen("Customers.txt", "r");
 	if (customerFile == NULL)
 	{
-		printf("Error opening the write customers file\n");
+		printf("Error opening the customers file\n");
 	}
 
 	if (!initSuperMarket(&market, binMarketFile, customerFile))
@@ -109,12 +106,27 @@ int main()
 		}
 	} while (!stop);
 
-	if (!freeMarket(&market, binMarketFile, customerFile)) // opens file
+	//binMarketFile = fopen("SuperMarket", "wb");
+	//if (binMarketFile == NULL)
+	//{
+	//	printf("Error open company file\n");
+	//	return 0;
+	//}
+	//customerFile = fopen("Customers.txt", "w");
+	//if (customerFile == NULL)
+	//{
+	//	printf("Error opening the write customers file\n");
+	//	return 0;
+	//}
+
+	if (!saveMarket(&market, binMarketFile, customerFile))
 	{
-		return 0;
+		printf("failed saving to binary file\n");
 	}
-	fclose(customerFile);
-	fclose(binMarketFile);
+
+	freeMarket(&market);
+	/*fclose(customerFile);
+	fclose(binMarketFile);*/
 
 	system("pause");
 	return 1;

@@ -22,16 +22,17 @@ int		initSuperMarket(SuperMarket* pMarket, FILE* nameAndProductsFile, FILE* cust
 		pMarket->customerCount = 0;
 		pMarket->customerArr = NULL;
 	}
-	L_init(&pMarket->Products); // init list
-	if (!&pMarket->Products)
+	L_init(&pMarket->products); // init list
+	if (!&pMarket->products)
 	{
 		printf("failed init list\n");
 		return 0;
 	}
 	if (!readProductsFromBinFile(pMarket, nameAndProductsFile)) // failed to read products
 	{
-		printf("no products from file\n");
+		printf("no products in file\n");
 	}
+	printf("Supermarket successfully loaded from files\n");
 	return 1;
 }
 
@@ -56,7 +57,6 @@ int		addProduct(SuperMarket* pMarket)
 		if (!addNewProduct(pMarket, barcode))
 			return 0;
 	}
-
 	return 1;
 }
 
@@ -70,58 +70,7 @@ int		addNewProduct(SuperMarket* pMarket, const char* barcode)
 	strcpy(pProd->barcode, barcode);
 	initProductNoBarcode(pProd);
 
-	NODE* newNode = L_find(pMarket->Products.head.next, pProd, compareByBarcode);
-	if (newNode) // exists
-	{
-		free(pProd);
-		return 0;
-	}
-	if (pMarket->Products.head.next == NULL) // first product
-	{
-		if (!L_insert(&pMarket->Products.head, pProd)) // if insert fails
-		{
-			free(pProd);
-			return 0;
-		}
-		return 1;
-	}
-	if (!insertProductSorted(pMarket, pProd, barcode))
-	{
-		free(pProd);
-		return 0;
-	}
-	return 1;
-}
-
-int insertProductSorted(SuperMarket* pMarket, Product* pProd, const char* barcode)
-{
-	Product* tmp = (Product*)pMarket->Products.head.next->key;
-	if (strcmp(tmp->barcode, barcode) > 0) // insert to start O(1)
-	{
-		if (!L_insert(&pMarket->Products.head, pProd)) // if insert fails
-		{
-			return 0;
-		}
-	}
-	else { // insert to end O(n)
-		NODE* newNode = (NODE*)malloc(sizeof(NODE));
-		if (!newNode)
-		{
-			return 0;
-		}
-		newNode->key = pProd;
-
-		NODE* tmp = pMarket->Products.head.next; // start
-		while (tmp)
-		{
-			if (tmp->next == NULL)
-			{
-				tmp->next = newNode;
-				newNode->next = NULL;
-			}
-			tmp = tmp->next;
-		} // reached end
-	}
+	L_insertSorted(&pMarket->products, pProd, compareByBarcode);
 	return 1;
 }
 
@@ -147,7 +96,7 @@ int		addCustomer(SuperMarket* pMarket)
 
 	pMarket->customerArr[pMarket->customerCount] = cust;
 	pMarket->customerCount++;
-	isSorted = False;
+	attributeIndex = -1;
 	return 1;
 }
 
@@ -210,7 +159,7 @@ Customer* getCustomerShopPay(SuperMarket* pMarket)
 		return NULL;
 	}
 
-	if (pMarket->Products.head.next == NULL)
+	if (pMarket->products.head.next == NULL)
 	{
 		printf("No products in market - cannot shop\n");
 		return NULL;
@@ -228,13 +177,13 @@ Customer* getCustomerShopPay(SuperMarket* pMarket)
 
 void	printAllProducts(const SuperMarket* pMarket)
 {
-	int listLength = L_print(&pMarket->Products, NULL); // L_print also counts but returns the value after prints.
+	int listLength = L_print(&pMarket->products, NULL);
 	printf("There are %d products\n", listLength);
 	printf("%-20s %-10s\t", "Name", "Barcode");
 	printf("%-20s %-10s %s\n", "Type", "Price", "Count In Stoke");
 	printf("--------------------------------------------------------------------------------\n");
 
-	L_print(&pMarket->Products, printProduct);
+	L_print(&pMarket->products, printProduct);
 }
 
 void	printAllCustomers(const SuperMarket* pMarket)
@@ -310,7 +259,7 @@ Product* getProductAndCount(SuperMarket* pMarket, int* pCount)
 
 void	printProductByType(const SuperMarket* pMarket)
 {
-	if (pMarket->Products.head.next == NULL)
+	if (pMarket->products.head.next == NULL)
 	{
 		printf("No products in market\n");
 		return;
@@ -319,7 +268,7 @@ void	printProductByType(const SuperMarket* pMarket)
 	prodType.type = getProductType();
 	int count = 0;
 
-	NODE* tmpProd = pMarket->Products.head.next;
+	NODE* tmpProd = pMarket->products.head.next;
 	while (tmpProd)
 	{
 		if (isSameType(tmpProd->key, &prodType))
@@ -350,12 +299,11 @@ void SortCustomersByAttribute(SuperMarket* pMarket)
 	attributeIndex = getCustomerSortAttribute();
 	qsort(pMarket->customerArr, pMarket->customerCount, sizeof(Customer), sortAttributeArr[attributeIndex - 1]);
 	printf("\n\n");
-	isSorted = True;
 }
 
 void findCustomer(const SuperMarket* pMarket)
 {
-	if (isSorted == False)
+	if (attributeIndex == -1)
 	{
 		printf("The search cannot be performed, array not sorted\n");
 		return;
@@ -415,40 +363,43 @@ void searchByName(const SuperMarket* pMarket)
 	}
 }
 
-
-int freeMarket(SuperMarket* pMarket, FILE* binMarketFile, FILE* customerFile)
+int saveMarket(SuperMarket* pMarket, FILE* binMarketFile, FILE* customerFile)
 {
 	binMarketFile = fopen("SuperMarket", "wb");
-	if (binMarketFile == NULL)
+	if (binMarketFile != NULL)
 	{
-		printf("Error open company file\n");
-		return 0;
+		if (!writeMarketToBinFile(pMarket, binMarketFile)) // name and address
+		{
+			fclose(binMarketFile);
+			return 0;
+		}
+		fclose(binMarketFile);
 	}
 	customerFile = fopen("Customers.txt", "w");
-	if (customerFile == NULL)
+	if (customerFile != NULL)
 	{
-		printf("Error opening the write customers file\n");
-		return 0;
+		writeCustomersToFile(pMarket, customerFile); // customers
+		fclose(customerFile);
 	}
-	writeMarketAndAddressToBinFile(pMarket, binMarketFile); // name and address
-	writeProductsToBinFile(pMarket, binMarketFile); // products
+	return 1;
+}
+
+void freeMarket(SuperMarket* pMarket)
+{
 	free(pMarket->name);
 	freeAddress(&pMarket->location);
-	L_free(&pMarket->Products, free);
-
-	writeCustomersToFile(pMarket, customerFile); // customers
+	L_free(&pMarket->products, free);
 	generalArrayFunction(pMarket->customerArr, pMarket->customerCount, sizeof(Customer), freeCustomer);
 	free(pMarket->customerArr);
-	return 1;
 }
 
 Product* getProductByBarcode(SuperMarket* pMarket, const char* barcode)
 {
-	if (pMarket->Products.head.next == NULL)
+	if (pMarket->products.head.next == NULL)
 	{
 		return NULL;
 	}
-	NODE* tmp = pMarket->Products.head.next;
+	NODE* tmp = pMarket->products.head.next;
 	Product tempProd;
 	strcpy(tempProd.barcode, barcode);
 	tmp = L_find(tmp, &tempProd, compareByBarcode);
@@ -469,42 +420,44 @@ Customer* findCustomerByName(const SuperMarket* pMarket, const char* name)
 	return  NULL;
 }
 
-void writeMarketAndAddressToBinFile(SuperMarket* pMarket, FILE* file)
+int writeMarketToBinFile(SuperMarket* pMarket, FILE* file)
 {
-	if (writeDynStrToBinFile(pMarket->name, file) != 1) // name
+	if (!writeDynStrToBinFile(pMarket->name, file)) // name
 	{
-		fclose(file);
-		return;
+		return 0;
 	}
-	if (writeAddressToFile(&pMarket->location, file) != 1) // address
+	if (!writeAddressToFile(&pMarket->location, file)) // address
 	{
-		fclose(file);
-		return;
+		return 0;
 	}
+	if (!writeProductsToBinFile(pMarket, file)) // products
+	{
+		return 0;
+	}
+	return 1;
 }
 
-void writeProductsToBinFile(SuperMarket* pMarket, FILE* file)
+int writeProductsToBinFile(SuperMarket* pMarket, FILE* file)
 {
-	if (pMarket->Products.head.next == NULL)
+	if (pMarket->products.head.next == NULL)
 	{
-		fclose(file);
-		return;
+		return 0;
 	}
-	NODE* tmp = pMarket->Products.head.next; // products
-	int count = L_print(&pMarket->Products, NULL);
+	NODE* tmp = pMarket->products.head.next; // products
+	int count = L_print(&pMarket->products, NULL);
+	if (fwrite(&count, sizeof(int), 1, file) != 1)
+	{
+		return 0;
+	}
 	while (tmp)
 	{
 		if (writeProductToBinFile(tmp->key, file) != 1)
 		{
-			fclose(file);
-			return;
+			return 0;
 		}
 		tmp = tmp->next;
 	}
-	if (fwrite(&count, sizeof(int), 1, file) != 1)
-	{
-		fclose(file);
-	}
+	return 1;
 }
 
 int readMarketNameAndAddressFromBinFile(SuperMarket* pMarket, FILE* file)
@@ -533,20 +486,11 @@ int readProductsFromBinFile(SuperMarket* pMarket, FILE* file)
 	{
 		return 0;
 	}
-	printf("%d\n", ftell(file));
-	printf("%zu\n", sizeof(Product));
-	fseek(file, sizeof(int) * (-1), SEEK_END);
-	printf("%d\n", ftell(file));
 	size_t listSize = 0;
 	if (fread(&listSize, sizeof(int), 1, file) != 1)
 	{
-		fclose(file);
 		return 0;
 	}
-	printf("%d\n", ftell(file));
-	printf("%zu\n", listSize);
-	fseek(file, sizeof(int) * (-1), SEEK_CUR);
-	printf("%d\n", ftell(file));
 	if (!buildMarketListFromBinFile(pMarket, file, listSize))
 	{
 		printf("error build market list from file\n");
@@ -557,22 +501,14 @@ int readProductsFromBinFile(SuperMarket* pMarket, FILE* file)
 
 int buildMarketListFromBinFile(SuperMarket* pMarket, FILE* file, int listSize)
 {
-	for (int i = 1; i <= listSize; i++) // build market List
+	for (int i = 0; i < listSize; i++) // build market List
 	{
-		printf("%d\n", ftell(file));
-		fseek(file, sizeof(Product) * (-i), SEEK_CUR); // jump i*products bytes backwards
-		printf("%d\n", ftell(file));
 		Product* newProd = readProductFromFile(file);
 		if (!newProd)
 		{
 			return 0;
 		}
-		NODE* newNode = (NODE*)malloc(sizeof(NODE));
-		if (!newNode)
-		{
-			return 0;
-		}
-		L_insert(&pMarket->Products.head, newProd);
+		L_insertSorted(&pMarket->products.head, newProd, compareByBarcode);
 	}
 	return 1;
 }

@@ -23,7 +23,7 @@ BOOL L_init(LIST* pList)
 //			a value to be stored in the new node
 // Output:	pointer to the new node
 /////////////////////////////////////////////////////////////////
-NODE* L_insert(NODE* pNode, void* Value)
+NODE* L_insert(NODE* pNode, DATA value)
 {
 	NODE* tmp;
 
@@ -32,11 +32,28 @@ NODE* L_insert(NODE* pNode, void* Value)
 	tmp = (NODE*)malloc(sizeof(NODE));	// new node
 
 	if (tmp) {
-		tmp->key = Value;
+		tmp->key = value;
 		tmp->next = pNode->next;
 		pNode->next = tmp;
 	}
 	return tmp;
+}
+
+NODE* L_insertSorted(NODE* pNode, DATA value, int(*compare)(const void*, const void*))
+{
+	while (pNode)
+	{
+		if (pNode->next == NULL) // reached end
+		{
+			return L_insert(pNode, value);
+		}
+		if (compare(pNode->next->key, value) > 0)
+		{
+			return L_insert(pNode, value);
+		}
+		pNode = pNode->next;
+	}
+	return NULL;
 }
 
 
@@ -67,7 +84,7 @@ BOOL L_delete(NODE* pNode, void (*freeFunc)(void*))
 //			a value to be found
 // Output:	pointer to the node containing the Value
 /////////////////////////////////////////////////////////
-NODE* L_find(NODE* pNode, void* value, int(*compare)(const void*, const void*))
+NODE* L_find(NODE* pNode, DATA value, int(*compare)(const void*, const void*))
 {
 	NODE* temp = NULL;
 	if (!pNode) return NULL;
