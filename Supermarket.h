@@ -1,8 +1,16 @@
 #pragma once
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
 #include "Address.h"
 #include "Customer.h"
 #include "Product.h"
 #include "List.h"
+#include "Address.h"
+#include "General.h"
 #include "ShoppingCart.h"
 
 static BOOL isSorted = False;
@@ -38,18 +46,22 @@ Customer* initCustomerFromFile(SuperMarket* pMarket, FILE* file);
 Product* getProductByBarcode(SuperMarket* pMarket, const char* barcode);
 Product* getProductFromUser(SuperMarket* pMarket, char* barcode);
 // void	getUniquBarcode(char* barcode, SuperMarket* pMarket);
-Customer* FindCustomerByName(SuperMarket* pMarket, const char* name);
+Customer* findCustomerByName(const SuperMarket* pMarket, const char* name);
 
 Customer* getCustomerWhoShop(SuperMarket* pMarket);
 Product* getProductAndCount(SuperMarket* pMarket, int* pCount);
 
-void	freeMarket(SuperMarket* pMarket);
+int freeMarket(SuperMarket* pMarket, FILE* binMarketFile, FILE* customerFile);
 void SortCustomersByAttribute(SuperMarket* pMarket);
 void findCustomer(const SuperMarket* pMarket);
 void writeCustomersToFile(const SuperMarket* pMarket, FILE* file);
-void writeMarketAndProductsToBinFile(SuperMarket* pMarket, FILE* file);
+void writeMarketAndAddressToBinFile(SuperMarket* pMarket, FILE* file);
+void writeProductsToBinFile(SuperMarket* pMarket, FILE* file);
 int readMarketNameAndAddressFromBinFile(SuperMarket* pMarket, FILE* file);
 int readCustomersFromFile(SuperMarket* pMarket, FILE* file);
 int readProductsFromBinFile(SuperMarket* pMarket, FILE* file);
+int buildMarketListFromBinFile(SuperMarket* pMarket, FILE* file, int listSize);
 int insertProductSorted(SuperMarket* pMarket, Product* pProd, const char* barcode);
+void searchByName(const SuperMarket* pMarket);
+void searchByNumbers(const SuperMarket* pMarket, const Customer* cust, int(*compareFunc)(const void*, const void*));
 

@@ -106,7 +106,7 @@ eProductType getProductType()
 	return (eProductType)option;
 }
 
-const char* getProductTypeStr(eProductType type)
+const char* getProductTypeStr(const eProductType type)
 {
 	if (type < 0 || type >= eNofProductType)
 		return NULL;
@@ -132,18 +132,19 @@ void	updateProductCount(Product* pProduct)
 
 int compareByBarcode(const void* pP1, const void* pP2)
 {
-	Product* prod1 = (Product*)pP1;
-	Product* prod2 = (Product*)pP2;
+	const Product* prod1 = (const Product*)pP1;
+	const Product* prod2 = (const Product*)pP2;
 	return (strcmp(prod1->barcode, prod2->barcode));
 }
 
-int isSameType(const void* pP1, const eProductType pP2)
+int isSameType(const void* pP1, const void* pP2)
 {
 	Product* prod1 = (Product*)pP1;
-	return (prod1->type == pP2);
+	Product* prod2 = (Product*)pP2;
+	return (prod1->type == prod2->type);
 }
 
-int writeProductToFile(Product* pProduct, FILE* file)
+int writeProductToBinFile(Product* pProduct, FILE* file)
 {
 	if (fwrite(&pProduct->name, sizeof(char), NAME_LENGTH + 1, file) != NAME_LENGTH + 1)
 	{
@@ -168,29 +169,35 @@ int writeProductToFile(Product* pProduct, FILE* file)
 	return 1;
 }
 
-Product* readProductFromFile(Product* pProduct, FILE* file)
+Product* readProductFromFile(FILE* file)
 {
-	if (fread(&pProduct->name, sizeof(char), NAME_LENGTH + 1, file) != NAME_LENGTH + 1)
+	Product* newProd = (Product*)malloc(sizeof(Product));
+	if (!newProd)
+	{
+		return 0;
+	}
+	if (fread(&newProd->name, sizeof(char), NAME_LENGTH + 1, file) != NAME_LENGTH + 1)
 	{
 		return NULL;
 	}
-	if (fread(&pProduct->barcode, sizeof(char), BARCODE_LENGTH + 1, file) != BARCODE_LENGTH + 1)
+	if (fread(&newProd->barcode, sizeof(char), BARCODE_LENGTH + 1, file) != BARCODE_LENGTH + 1)
 	{
 		return NULL;
 	}
-	if (fread(&pProduct->type, sizeof(int), 1, file) != 1)
+	if (fread(&newProd->type, sizeof(int), 1, file) != 1)
 	{
 		return NULL;
 	}
-	if (fread(&pProduct->price, sizeof(float), 1, file) != 1)
+	if (fread(&newProd->price, sizeof(float), 1, file) != 1)
 	{
 		return NULL;
 	}
-	if (fread(&pProduct->count, sizeof(int), 1, file) != 1)
+	if (fread(&newProd->count, sizeof(int), 1, file) != 1)
 	{
 		return NULL;
 	}
-	return pProduct;
+	printProduct(newProd);
+	return newProd;
 }
 
 void	freeProduct(Product* pProduct)

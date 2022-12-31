@@ -26,4 +26,3 @@ BOOL L_delete(NODE* pNode, void(*freeData)(void*));				// erase node after *pNod
 NODE* L_find(NODE* pNode, void* Value, int(*compare)(const void*, const void*));		// return a pointer to the node 
 BOOL L_free(LIST* pList, void(*freeData)(void*));				// free list memory
 int L_print(const LIST* pList, void(*print)(const void*));					// print the list content
-int L_count(const LIST* pList);

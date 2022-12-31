@@ -35,31 +35,33 @@ void	printCustomer(const Customer* pCustomer)
 
 int compareByName(const void* pC1, const void* pC2)
 {
-	Customer* cust1 = (Customer*)pC1;
-	Customer* cust2 = (Customer*)pC2;
+	const Customer* cust1 = (Customer*)pC1;
+	const Customer* cust2 = (Customer*)pC2;
 	return (strcmp(cust1->name, cust2->name));
 }
 
 int compareByShopTimes(const void* pC1, const void* pC2)
 {
-	Customer* cust1 = (Customer*)pC1;
-	Customer* cust2 = (Customer*)pC2;
-	return (cust1->shopTimes - cust2->shopTimes);
+	const Customer cust1 = *(const Customer*)pC1;
+	const Customer cust2 = *(const Customer*)pC2;
+	if (cust1.shopTimes == cust2.shopTimes)
+		return 0;
+	else if (cust1.shopTimes > cust2.shopTimes)
+		return 1;
+	else
+		return -1;
 }
 
 int compareByTotalSpend(const void* pC1, const void* pC2)
 {
-	Customer* cust1 = (Customer*)pC1;
-	Customer* cust2 = (Customer*)pC2;
-	if (cust1->totalSpend > cust2->totalSpend)
-	{
+	const Customer cust1 = *(const Customer*)pC1;
+	const Customer cust2 = *(const Customer*)pC2;
+	if (cust1.totalSpend == cust2.totalSpend)
+		return 0;
+	else if (cust1.totalSpend > cust2.totalSpend)
 		return 1;
-	}
-	else if (cust1->totalSpend < cust2->totalSpend)
-	{
+	else
 		return -1;
-	}
-	return 0;
 }
 
 
@@ -67,10 +69,7 @@ void	pay(Customer* pCustomer)
 {
 	if (!pCustomer->pCart)
 		return;
-	printf("---------- Cart info and bill for %s ----------\n", pCustomer->name);
-	pCustomer->totalSpend += printShoppingCart(pCustomer->pCart); // increase totalspend
-	pCustomer->shopTimes++; // increase shoptimes
-	printf("!!! --- Payment was recived!!!! --- \n");
+	printf("!!! --- Payment was received!!!! --- \n");
 	freeShoppingCart(pCustomer->pCart);
 	free(pCustomer->pCart);
 	pCustomer->pCart = NULL;
@@ -93,21 +92,21 @@ void	freeCustomer(Customer* pCust)
 	free(pCust->name);
 }
 
-eCustomerAttribute getCustomerSortAttribute()
+eSortAttribute getCustomerSortAttribute()
 {
 	int option;
 	printf("\n\n");
-	printf("What would you like to sort by?\nName: 0\nShopTimes: 1\ntotalSpend: 2\n");
+	printf("What would you like to sort by?\nName: 1\nShopTimes: 2\ntotalSpend: 3\n");
 	do {
 		scanf("%d", &option);
-		if (option < 0 || option >= eNofCustomerAttribute)
+		if (option < 1 || option >= eNofSortAttribute)
 		{
 			printf("wrong option\n");
-			printf("What would you like to sort by?\nName: 0\nShopTimes: 1\ntotalSpend: 2\n");
+			printf("What would you like to sort by?\nName: 1\nShopTimes: 2\ntotalSpend: 3\n");
 		}
-	} while (option < 0 || option >= eNofCustomerAttribute);
+	} while (option < 1 || option >= eNofSortAttribute);
 	getchar();
-	return (eCustomerAttribute)option;
+	return (eSortAttribute)option;
 }
 
 void writeCustomerToFile(Customer* pCustomer, FILE* file)

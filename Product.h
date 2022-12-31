@@ -21,16 +21,16 @@ void	initProductName(Product* pProduct);
 void	printProduct(const Product* pProduct);
 
 int compareByBarcode(const void* pP1, const void* pP2);
-int isSameType(const void* pP1, const eProductType pP2);
-int writeProductToFile(Product* pProduct, FILE* file);
-Product* readProductFromFile(Product* pProduct, FILE* file);
+int isSameType(const void* pP1, const void* pP2);
+int writeProductToBinFile(Product* pProduct, FILE* file);
+Product* readProductFromFile(FILE* file);
 
 
 
 void	getBorcdeCode(char* code);
 int		isProduct(const Product* pProduct, const char* barcode);
 eProductType getProductType();
-const char* getProductTypeStr(eProductType type);
+const char* getProductTypeStr(const eProductType type);
 
 void	updateProductCount(Product* pProduct);
 void	freeProduct(Product* pProduct);

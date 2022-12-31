@@ -77,6 +77,6 @@ ShoppingItem* getItemByBarocde(ShoppingCart* pCart, const char* barcode)
 
 void	freeShoppingCart(ShoppingCart* pCart)
 {
-	// generalArrayFunction(pCart->itemArr, pCart->count, sizeof(ShoppingItem*), free);
+	generalArrayFunction(pCart->itemArr, pCart->count, sizeof(ShoppingItem*), free);
 	free(pCart->itemArr);
 }

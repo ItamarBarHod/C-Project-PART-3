@@ -6,24 +6,21 @@
 #include "General.h"
 #include "Supermarket.h"
 
-
-
-
 // can i use static bool in supermarket for sort indicator?
-// can i create L_count even though L_print returns a number (but prints before)
 // can i create L_insertToEnd in List.c?
-// general L_delete + L_free, just add bool? --- didnt see generic List file
-// can i use isInit in main? (added logic in main)
-// should the program work if the user only deletes the binary file?
+// generic list free just means inserting freeFunc as null?
 // why check binary files write but not regular file write?
+// customer pay count doesnt increase on exitmarket?
+// check if free'd structs succeeded? (L_free for example)
+
+// TODO - save list in reverse to file
+// TODO - freeShoppingCart 
 
 int menu();
 
-
-
 const char* menuStrings[eNofOptions] = { "Show SuperMarket", "Add Product",
 								"Add Customer", "Customer Shopping","Print Shopping Cart","Customer Pay",
-								"Print Product By Type", "Sort Customers by Attribute" , "Find Customer" };
+								"Sort Customers by Attribute" , "Find Customer", "Print Product By Type" };
 
 int main()
 {
@@ -42,8 +39,17 @@ int main()
 
 	if (!initSuperMarket(&market, binMarketFile, customerFile))
 	{
-		printf("error init  Super Market");
+		printf("error init Super Market");
 		return 0;
+	}
+
+	if (binMarketFile != NULL)
+	{
+		fclose(binMarketFile);
+	}
+	if (customerFile != NULL)
+	{
+		fclose(customerFile);
 	}
 
 	int option;
@@ -56,7 +62,6 @@ int main()
 		case eShowSuperMarket:
 			printSuperMarket(&market);
 			break;
-
 
 		case eAddProduct:
 			if (!addProduct(&market))
@@ -81,16 +86,16 @@ int main()
 				printf("Error in payment\n");
 			break;
 
-		case ePrintProductByType:
-			printProductByType(&market);
-			break;
-
 		case eSortCustomersByAttribute:
 			SortCustomersByAttribute(&market);
 			break;
 
 		case eFindCustomer:
 			findCustomer(&market);
+			break;
+
+		case ePrintProductByType:
+			printProductByType(&market);
 			break;
 
 		case EXIT:
@@ -104,22 +109,10 @@ int main()
 		}
 	} while (!stop);
 
-	binMarketFile = fopen("SuperMarket", "wb");
-	if (binMarketFile == NULL)
+	if (!freeMarket(&market, binMarketFile, customerFile)) // opens file
 	{
-		printf("Error open company file\n");
 		return 0;
 	}
-	customerFile = fopen("Customers.txt", "w");
-	if (customerFile == NULL)
-	{
-		printf("Error opening the write customers file\n");
-		return 0;
-	}
-
-	writeMarketAndProductsToBinFile(&market, binMarketFile);
-	writeCustomersToFile(&market, customerFile);
-	freeMarket(&market);
 	fclose(customerFile);
 	fclose(binMarketFile);
 

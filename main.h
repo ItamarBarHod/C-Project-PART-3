@@ -6,7 +6,7 @@
 typedef enum
 {
 	eShowSuperMarket, eAddProduct, eAddCustomer, eCustomerDoShopping, ePrintCart, eCustomerPay,
-	ePrintProductByType, eSortCustomersByAttribute, eFindCustomer, eNofOptions
+	eSortCustomersByAttribute, eFindCustomer, ePrintProductByType, eNofOptions
 } eMenuOptions;
 
 const char* menuStrings[eNofOptions];

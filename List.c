@@ -120,25 +120,10 @@ int L_print(const LIST* pList, void(*print)(const void*))
 
 	if (!pList) return 0;
 
-	printf("\n");
 	for (tmp = pList->head.next; tmp; tmp = tmp->next, c++)
-		print(tmp->key);
-	printf("\n");
+		if (print != NULL)
+		{
+			print(tmp->key);
+		}
 	return c;
-}
-
-int L_count(const LIST* pList)
-{
-	if (pList->head.next == NULL)
-	{
-		return 0;
-	}
-	int count = 0;
-	NODE* tmp = pList->head.next;
-	while (tmp)
-	{
-		count++;
-		tmp = tmp->next;
-	}
-	return count;
 }
