@@ -1,5 +1,21 @@
-#include "List.h"
+/**************/
+/*   list.c   */
+/**************/
 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "listGen.h"
+
+
+BOOL isEmptyList(LIST* pList)
+{
+	if (pList->head.next == NULL)
+	{
+		return True;
+	}
+	return False;
+}
 
 //////////////////////////////////////////
 // Init
@@ -23,7 +39,7 @@ BOOL L_init(LIST* pList)
 //			a value to be stored in the new node
 // Output:	pointer to the new node
 /////////////////////////////////////////////////////////////////
-NODE* L_insert(NODE* pNode, DATA value)
+NODE* L_insert(NODE* pNode, DATA Value)
 {
 	NODE* tmp;
 
@@ -31,8 +47,8 @@ NODE* L_insert(NODE* pNode, DATA value)
 
 	tmp = (NODE*)malloc(sizeof(NODE));	// new node
 
-	if (tmp) {
-		tmp->key = value;
+	if (tmp != NULL) {
+		tmp->key = Value;
 		tmp->next = pNode->next;
 		pNode->next = tmp;
 	}
@@ -55,7 +71,6 @@ NODE* L_insertSorted(NODE* pNode, DATA value, int(*compare)(const void*, const v
 	}
 	return NULL;
 }
-
 
 //////////////////////////////////////////////////////////////
 // Delete
@@ -97,7 +112,10 @@ NODE* L_find(NODE* pNode, DATA value, int(*compare)(const void*, const void*))
 		}
 		pNode = pNode->next;
 	}
+
 	return temp;
+
+
 }
 
 
@@ -123,24 +141,25 @@ BOOL L_free(LIST* pList, void (*freeFunc)(void*))
 }
 
 
-
 ////////////////////////////////////////////////
 // Print (additional function)
 // Aim:		print the list content (assume the DATA is int)
 // Input:	pointer to the list structure
 // Output:	a number of the printed elements
 ////////////////////////////////////////////////
-int L_print(const LIST* pList, void(*print)(const void*))
+int L_print(LIST* pList, void(*print)(const void*))
 {
 	NODE* tmp;
 	int		c = 0;
 
 	if (!pList) return 0;
 
+	printf("\n");
 	for (tmp = pList->head.next; tmp; tmp = tmp->next, c++)
-		if (print != NULL)
+		if (print != NULL) // use it as L_count
 		{
 			print(tmp->key);
 		}
+	printf("\n");
 	return c;
 }

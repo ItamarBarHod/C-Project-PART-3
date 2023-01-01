@@ -17,7 +17,7 @@ int compareByName(const void* pC1, const void* pC2);
 int compareByShopTimes(const void* pC1, const void* pC2);
 int compareByTotalSpend(const void* pC1, const void* pC2);
 
-static const void* sortAttributeArr[eNofSortAttribute] = { compareByName, compareByShopTimes, compareByTotalSpend };
+static void* sortAttributeArr[eNofSortAttribute] = { compareByName, compareByShopTimes, compareByTotalSpend };
 static int attributeIndex = -1;
 
 void writeCustomerToFile(Customer* pCustomer, FILE* file);

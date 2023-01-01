@@ -8,9 +8,9 @@
 #include "Address.h"
 #include "Customer.h"
 #include "Product.h"
-#include "List.h"
 #include "Address.h"
 #include "General.h"
+#include "listGen.h"
 #include "ShoppingCart.h"
 
 typedef struct
@@ -56,10 +56,12 @@ void findCustomer(const SuperMarket* pMarket);
 void writeCustomersToFile(const SuperMarket* pMarket, FILE* file);
 int writeMarketToBinFile(SuperMarket* pMarket, FILE* file);
 int writeProductsToBinFile(SuperMarket* pMarket, FILE* file);
+int initMarketNameAndAddress(SuperMarket* pMarket, FILE* binMarketFile);
 int readMarketNameAndAddressFromBinFile(SuperMarket* pMarket, FILE* file);
+void initMarketCustomers(SuperMarket* pMarket, FILE* customerFile);
 int readCustomersFromFile(SuperMarket* pMarket, FILE* file);
 int readProductsFromBinFile(SuperMarket* pMarket, FILE* file);
-int buildMarketListFromBinFile(SuperMarket* pMarket, FILE* file, int listSize);
+int buildMarketListFromBinFile(SuperMarket* pMarket, FILE* file, size_t listSize);
 void searchByName(const SuperMarket* pMarket);
 void searchByNumbers(const SuperMarket* pMarket, const Customer* cust, int(*compareFunc)(const void*, const void*));
 

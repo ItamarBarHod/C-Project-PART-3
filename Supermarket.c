@@ -1,9 +1,33 @@
 #define  _CRT_SECURE_NO_WARNINGS
 #include "Supermarket.h"
 
-int		initSuperMarket(SuperMarket* pMarket, FILE* nameAndProductsFile, FILE* customerFile)
+int		initSuperMarket(SuperMarket* pMarket, FILE* binMarketFile, FILE* customerFile)
 {
-	if (!readMarketNameAndAddressFromBinFile(pMarket, nameAndProductsFile)) // failed to read from binary
+	L_init(&pMarket->products); // init list
+	if (!&pMarket->products)
+	{
+		printf("failed init list\n");
+		return 0;
+	}
+	BOOL isBinFileError = False;
+	if (!initMarketNameAndAddress(pMarket, binMarketFile)) // init market if binary file failed
+	{
+		isBinFileError = True;
+	}
+	if (!isBinFileError) // no error in file, can try to continue reading
+	{
+		if (!readProductsFromBinFile(pMarket, binMarketFile)) // failed to read products
+		{
+			printf("failed reading products from binary file\n");
+		}
+	}
+	initMarketCustomers(pMarket, customerFile);
+	return 1;
+}
+
+int initMarketNameAndAddress(SuperMarket* pMarket, FILE* binMarketFile)
+{
+	if (!readMarketNameAndAddressFromBinFile(pMarket, binMarketFile)) // failed to read from binary
 	{
 		pMarket->name = getStrExactLength("Enter market name"); // init name
 		if (!pMarket->name)
@@ -16,23 +40,22 @@ int		initSuperMarket(SuperMarket* pMarket, FILE* nameAndProductsFile, FILE* cust
 			printf("address memory error\n");
 			return 0;
 		}
-	}
-	if (!readCustomersFromFile(pMarket, customerFile))
-	{
-		pMarket->customerCount = 0;
-		pMarket->customerArr = NULL;
-	}
-	L_init(&pMarket->products); // init list
-	if (!&pMarket->products)
-	{
-		printf("failed init list\n");
 		return 0;
 	}
-	if (!readProductsFromBinFile(pMarket, nameAndProductsFile)) // failed to read products
+	printf("Name and Address loaded from files\n");
+	return 1;
+}
+
+void initMarketCustomers(SuperMarket* pMarket, FILE* customerFile) // void since market doesnt depend on it to initialzie
+{
+	if (!readCustomersFromFile(pMarket, customerFile))
 	{
-		printf("no products in file\n");
+		printf("Error reading customer file\n");
+		pMarket->customerCount = 0;
+		pMarket->customerArr = NULL;
+		return 0;
 	}
-	printf("Supermarket successfully loaded from files\n");
+	printf("%d customers loaded from file\n", pMarket->customerCount);
 	return 1;
 }
 
@@ -70,7 +93,7 @@ int		addNewProduct(SuperMarket* pMarket, const char* barcode)
 	strcpy(pProd->barcode, barcode);
 	initProductNoBarcode(pProd);
 
-	L_insertSorted(&pMarket->products, pProd, compareByBarcode);
+	L_insertSorted(&pMarket->products.head, pProd, compareByBarcode);
 	return 1;
 }
 
@@ -124,7 +147,13 @@ int	doShopping(SuperMarket* pMarket)
 		initCart(pCustomer->pCart);
 	}
 	fillCart(pMarket, pCustomer->pCart);
-	printf("---------- Shopping ended ----------\n");
+	if (pCustomer->pCart->count == 0)
+	{
+		free(pCustomer->pCart);
+		pCustomer->pCart = NULL;
+	}
+	else
+		printf("---------- Shopping ended ----------\n");
 	return 1;
 }
 
@@ -159,7 +188,7 @@ Customer* getCustomerShopPay(SuperMarket* pMarket)
 		return NULL;
 	}
 
-	if (pMarket->products.head.next == NULL)
+	if (isEmptyList(&pMarket->products))
 	{
 		printf("No products in market - cannot shop\n");
 		return NULL;
@@ -259,7 +288,7 @@ Product* getProductAndCount(SuperMarket* pMarket, int* pCount)
 
 void	printProductByType(const SuperMarket* pMarket)
 {
-	if (pMarket->products.head.next == NULL)
+	if (isEmptyList(&pMarket->products))
 	{
 		printf("No products in market\n");
 		return;
@@ -311,15 +340,13 @@ void findCustomer(const SuperMarket* pMarket)
 	Customer tempCustomer;
 	if (attributeIndex == 2) // shop times
 	{
-		int timeShop = getPositiveInt("Enter time in market");
-		tempCustomer.shopTimes = timeShop;
+		tempCustomer.shopTimes = getPositiveInt("Enter time in market");
 		searchByNumbers(pMarket, &tempCustomer, compareByShopTimes);
 
 	}
 	else if (attributeIndex == 3) // total spend
 	{
-		float totalSpend = getPositiveFloat("Enter spent amount");
-		tempCustomer.totalSpend = totalSpend;
+		tempCustomer.totalSpend = getPositiveFloat("Enter spent amount");
 		searchByNumbers(pMarket, &tempCustomer, compareByTotalSpend);
 	}
 	else // name 
@@ -330,7 +357,7 @@ void findCustomer(const SuperMarket* pMarket)
 
 void searchByNumbers(const SuperMarket* pMarket, const Customer* cust, int(*compareFunc)(const void*, const void*))
 {
-	Customer* result = bsearch(cust, pMarket->customerArr, pMarket->customerCount, sizeof(Customer), compareFunc);
+	Customer* result = (Customer*)bsearch(cust, pMarket->customerArr, pMarket->customerCount, sizeof(Customer), compareFunc);
 	if (!result)
 	{
 		printf("Customer was not found\n");
@@ -352,7 +379,7 @@ void searchByName(const SuperMarket* pMarket)
 		printf("customer doesnt exist, returning\n");
 		return;
 	}
-	Customer* result = bsearch(isExist, pMarket->customerArr, pMarket->customerCount, sizeof(Customer), compareByName);
+	Customer* result = (Customer*)bsearch(isExist, pMarket->customerArr, pMarket->customerCount, sizeof(Customer), compareByName);
 	if (!result)
 	{
 		printf("Customer was not found\n");
@@ -365,17 +392,13 @@ void searchByName(const SuperMarket* pMarket)
 
 int saveMarket(SuperMarket* pMarket, FILE* binMarketFile, FILE* customerFile)
 {
-	binMarketFile = fopen("SuperMarket", "wb");
 	if (binMarketFile != NULL)
 	{
 		if (!writeMarketToBinFile(pMarket, binMarketFile)) // name and address
 		{
 			fclose(binMarketFile);
-			return 0;
 		}
-		fclose(binMarketFile);
 	}
-	customerFile = fopen("Customers.txt", "w");
 	if (customerFile != NULL)
 	{
 		writeCustomersToFile(pMarket, customerFile); // customers
@@ -395,7 +418,7 @@ void freeMarket(SuperMarket* pMarket)
 
 Product* getProductByBarcode(SuperMarket* pMarket, const char* barcode)
 {
-	if (pMarket->products.head.next == NULL)
+	if (isEmptyList(&pMarket->products))
 	{
 		return NULL;
 	}
@@ -424,14 +447,22 @@ int writeMarketToBinFile(SuperMarket* pMarket, FILE* file)
 {
 	if (!writeDynStrToBinFile(pMarket->name, file)) // name
 	{
+		printf("FILE ERROR: failed saving market name\n");
 		return 0;
 	}
 	if (!writeAddressToFile(&pMarket->location, file)) // address
 	{
+		printf("FILE ERROR: failed saving address\n");
 		return 0;
+	}
+	if (isEmptyList(&pMarket->products)) // empty product list
+	{
+		printf("product list is empty, not saving any products\n");
+		return 1;
 	}
 	if (!writeProductsToBinFile(pMarket, file)) // products
 	{
+		printf("FILE ERROR: failed saving products\n");
 		return 0;
 	}
 	return 1;
@@ -439,7 +470,7 @@ int writeMarketToBinFile(SuperMarket* pMarket, FILE* file)
 
 int writeProductsToBinFile(SuperMarket* pMarket, FILE* file)
 {
-	if (pMarket->products.head.next == NULL)
+	if (isEmptyList(&pMarket->products))
 	{
 		return 0;
 	}
@@ -499,9 +530,9 @@ int readProductsFromBinFile(SuperMarket* pMarket, FILE* file)
 	return 1;
 }
 
-int buildMarketListFromBinFile(SuperMarket* pMarket, FILE* file, int listSize)
+int buildMarketListFromBinFile(SuperMarket* pMarket, FILE* file, size_t listSize)
 {
-	for (int i = 0; i < listSize; i++) // build market List
+	for (size_t i = 0; i < listSize; i++) // build market List
 	{
 		Product* newProd = readProductFromFile(file);
 		if (!newProd)
@@ -510,6 +541,7 @@ int buildMarketListFromBinFile(SuperMarket* pMarket, FILE* file, int listSize)
 		}
 		L_insertSorted(&pMarket->products.head, newProd, compareByBarcode);
 	}
+	printf("%zu products loaded from file\n", listSize);
 	return 1;
 }
 

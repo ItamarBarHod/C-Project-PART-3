@@ -39,7 +39,7 @@
     <ClCompile Include="ShoppingItem.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="List.c">
+    <ClCompile Include="listGen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,7 +68,10 @@
     <ClInclude Include="ShoppingItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="List.h">
+    <ClInclude Include="def.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="listGen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

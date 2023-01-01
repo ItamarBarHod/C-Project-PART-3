@@ -151,7 +151,7 @@ char* readDynStrFromBinFile(FILE* file)
 
 void generalArrayFunction(void* arr, size_t arrSize, size_t structSize, void(*f)(void*))
 {
-	for (int i = 0; i < arrSize; i++)
+	for (size_t i = 0; i < arrSize; i++)
 	{
 		char* item = (char*)(arr)+(i * structSize);
 		f(item);

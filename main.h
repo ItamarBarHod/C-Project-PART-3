@@ -11,4 +11,8 @@ typedef enum
 
 const char* menuStrings[eNofOptions];
 
+void openFilesToRead(FILE** binMarketFile, FILE** customerFile);
+void openFilesToWrite(FILE** binMarketFile, FILE** customerFile);
+void closeFiles(FILE* binMarketFile, FILE* customerFile);
+
 int menu();

@@ -8,8 +8,8 @@
 
 // can i use the static sort variable for sort indicator?
 // can i use the L_insertSorted in List.c?
-// generic list free just means inserting freeFunc as null?
 // why check binary files write but not regular file write?
+// why no include guards
 
 // TODO - freeShoppingCart 
 
@@ -22,32 +22,15 @@ const char* menuStrings[eNofOptions] = { "Show SuperMarket", "Add Product",
 int main()
 {
 	SuperMarket	market;
+	FILE* binMarketFile = NULL, * customerFile = NULL;
 
-	FILE* binMarketFile = fopen("SuperMarket", "rb");
-	if (binMarketFile == NULL)
-	{
-		printf("Error open company file\n");
-	}
-	FILE* customerFile = fopen("Customers.txt", "r");
-	if (customerFile == NULL)
-	{
-		printf("Error opening the customers file\n");
-	}
-
+	openFilesToRead(&binMarketFile, &customerFile);
 	if (!initSuperMarket(&market, binMarketFile, customerFile))
 	{
 		printf("error init Super Market");
 		return 0;
 	}
-
-	if (binMarketFile != NULL)
-	{
-		fclose(binMarketFile);
-	}
-	if (customerFile != NULL)
-	{
-		fclose(customerFile);
-	}
+	closeFiles(binMarketFile, customerFile);
 
 	int option;
 	int stop = 0;
@@ -106,27 +89,12 @@ int main()
 		}
 	} while (!stop);
 
-	//binMarketFile = fopen("SuperMarket", "wb");
-	//if (binMarketFile == NULL)
-	//{
-	//	printf("Error open company file\n");
-	//	return 0;
-	//}
-	//customerFile = fopen("Customers.txt", "w");
-	//if (customerFile == NULL)
-	//{
-	//	printf("Error opening the write customers file\n");
-	//	return 0;
-	//}
-
-	if (!saveMarket(&market, binMarketFile, customerFile))
+	openFilesToWrite(&binMarketFile, &customerFile);
+	if (!saveMarket(&market, binMarketFile, customerFile)) // closes files inside
 	{
 		printf("failed saving to binary file\n");
 	}
-
 	freeMarket(&market);
-	/*fclose(customerFile);
-	fclose(binMarketFile);*/
 
 	system("pause");
 	return 1;
@@ -147,3 +115,43 @@ int menu()
 	return option;
 }
 
+void openFilesToRead(FILE** binMarketFile, FILE** customerFile)
+{
+	*binMarketFile = fopen("SuperMarket", "rb");
+	if (*binMarketFile == NULL)
+	{
+		printf("Error open company file to read\n");
+	}
+	*customerFile = fopen("Customers.txt", "r");
+	if (*customerFile == NULL)
+	{
+		printf("Error opening the customers file to read\n");
+	}
+}
+
+void openFilesToWrite(FILE** binMarketFile, FILE** customerFile)
+{
+	*binMarketFile = fopen("SuperMarket", "wb");
+	if (*binMarketFile == NULL)
+	{
+		printf("Error open company file to write\n");
+	}
+	*customerFile = fopen("Customers.txt", "w");
+	if (*customerFile == NULL)
+	{
+		printf("Error opening the customers file to write\n");
+	}
+}
+
+
+void closeFiles(FILE* binMarketFile, FILE* customerFile)
+{
+	if (binMarketFile != NULL)
+	{
+		fclose(binMarketFile);
+	}
+	if (customerFile != NULL)
+	{
+		fclose(customerFile);
+	}
+}
