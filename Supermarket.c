@@ -53,10 +53,9 @@ void initMarketCustomers(SuperMarket* pMarket, FILE* customerFile) // void since
 		printf("Error reading customer file\n");
 		pMarket->customerCount = 0;
 		pMarket->customerArr = NULL;
-		return 0;
+		return;
 	}
 	printf("%d customers loaded from file\n", pMarket->customerCount);
-	return 1;
 }
 
 void printSuperMarket(const SuperMarket* pMarket)
@@ -110,15 +109,24 @@ int		addCustomer(SuperMarket* pMarket)
 		return 0;
 	}
 
-	pMarket->customerArr = (Customer*)realloc(pMarket->customerArr, (pMarket->customerCount + 1) * sizeof(Customer));
+	/*pMarket->customerArr = (Customer*)realloc(pMarket->customerArr, (pMarket->customerCount + 1) * sizeof(Customer));
 	if (!pMarket->customerArr)
 	{
 		free(cust.name);
 		return 0;
 	}
+	original code.. bad realloc will delete array, instead:*/
+	Customer* tempArr = (Customer*)realloc(pMarket->customerArr, (pMarket->customerCount + 1) * sizeof(Customer));
+	if (!tempArr)
+	{
+		free(cust.name);
+		return 0;
+	}
 
-	pMarket->customerArr[pMarket->customerCount] = cust;
+	tempArr[pMarket->customerCount] = cust;
+	//pMarket->customerArr[pMarket->customerCount] = cust;
 	pMarket->customerCount++;
+	pMarket->customerArr = tempArr;
 	attributeIndex = -1;
 	return 1;
 }
@@ -567,8 +575,8 @@ int readCustomersFromFile(SuperMarket* pMarket, FILE* file)
 	{
 		return 0;
 	}
-	size_t size = 0;
-	fscanf(file, "%zu", &size);
+	int size = 0;
+	fscanf(file, "%d", &size);
 	if (size == 0)
 	{
 		return 0;

@@ -146,23 +146,7 @@ int isSameType(const void* pP1, const void* pP2)
 
 int writeProductToBinFile(Product* pProduct, FILE* file)
 {
-	if (fwrite(&pProduct->name, sizeof(char), NAME_LENGTH + 1, file) != NAME_LENGTH + 1)
-	{
-		return 0;
-	}
-	if (fwrite(&pProduct->barcode, sizeof(char), BARCODE_LENGTH + 1, file) != BARCODE_LENGTH + 1)
-	{
-		return 0;
-	}
-	if (fwrite(&pProduct->type, sizeof(int), 1, file) != 1)
-	{
-		return 0;
-	}
-	if (fwrite(&pProduct->price, sizeof(float), 1, file) != 1)
-	{
-		return 0;
-	}
-	if (fwrite(&pProduct->count, sizeof(int), 1, file) != 1)
+	if (fwrite(pProduct, sizeof(Product), 1, file) != 1)
 	{
 		return 0;
 	}
@@ -174,25 +158,9 @@ Product* readProductFromFile(FILE* file)
 	Product* newProd = (Product*)malloc(sizeof(Product));
 	if (!newProd)
 	{
-		return 0;
-	}
-	if (fread(&newProd->name, sizeof(char), NAME_LENGTH + 1, file) != NAME_LENGTH + 1)
-	{
 		return NULL;
 	}
-	if (fread(&newProd->barcode, sizeof(char), BARCODE_LENGTH + 1, file) != BARCODE_LENGTH + 1)
-	{
-		return NULL;
-	}
-	if (fread(&newProd->type, sizeof(int), 1, file) != 1)
-	{
-		return NULL;
-	}
-	if (fread(&newProd->price, sizeof(float), 1, file) != 1)
-	{
-		return NULL;
-	}
-	if (fread(&newProd->count, sizeof(int), 1, file) != 1)
+	if (fread(newProd, sizeof(Product), 1, file) != 1)
 	{
 		return NULL;
 	}

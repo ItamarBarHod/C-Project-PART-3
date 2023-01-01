@@ -8,7 +8,7 @@
 #include "listGen.h"
 
 
-BOOL isEmptyList(LIST* pList)
+BOOL isEmptyList(const LIST* pList)
 {
 	if (pList->head.next == NULL)
 	{
@@ -147,7 +147,7 @@ BOOL L_free(LIST* pList, void (*freeFunc)(void*))
 // Input:	pointer to the list structure
 // Output:	a number of the printed elements
 ////////////////////////////////////////////////
-int L_print(LIST* pList, void(*print)(const void*))
+int L_print(const LIST* pList, void(*print)(const void*))
 {
 	NODE* tmp;
 	int		c = 0;

@@ -34,13 +34,21 @@ int		addItemToCart(ShoppingCart* pCart, const char* barcode, float price, int co
 		pItem = createItem(barcode, price, count);
 		if (!pItem)
 			return 0;
-		pCart->itemArr = (ShoppingItem**)realloc(pCart->itemArr, (pCart->count + 1) * sizeof(ShoppingItem*));
+		/*pCart->itemArr = (ShoppingItem**)realloc(pCart->itemArr, (pCart->count + 1) * sizeof(ShoppingItem*));
 		if (!pCart->itemArr)
 			return 0;
+		original code.. bad realloc will delete array, also pItem is allocated but not free'd if realloc fails, instead:*/
+		ShoppingItem** tempArr = (ShoppingItem**)realloc(pCart->itemArr, (pCart->count + 1) * sizeof(ShoppingItem*));
+		if (!tempArr)
+		{
+			free(pItem);
+			return 0;
+		}
 
-		pCart->itemArr[pCart->count] = pItem;
+		tempArr[pCart->count] = pItem;
+		// pCart->itemArr[pCart->count] = pItem;
 		pCart->count++;
-
+		pCart->itemArr = tempArr;
 	}
 	else {
 		pItem->count += count;
@@ -77,6 +85,6 @@ ShoppingItem* getItemByBarocde(ShoppingCart* pCart, const char* barcode)
 
 void	freeShoppingCart(ShoppingCart* pCart)
 {
-	generalArrayFunction(*pCart->itemArr, pCart->count, sizeof(ShoppingItem*), free);
-	// free(pCart->itemArr);
+	generalArrayFunction(pCart->itemArr, pCart->count, sizeof(ShoppingItem*), free);
+	free(pCart->itemArr);
 }

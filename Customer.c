@@ -44,12 +44,7 @@ int compareByShopTimes(const void* pC1, const void* pC2)
 {
 	const Customer cust1 = *(const Customer*)pC1;
 	const Customer cust2 = *(const Customer*)pC2;
-	if (cust1.shopTimes == cust2.shopTimes)
-		return 0;
-	else if (cust1.shopTimes > cust2.shopTimes)
-		return 1;
-	else
-		return -1;
+	return cust1.shopTimes - cust2.shopTimes;
 }
 
 int compareByTotalSpend(const void* pC1, const void* pC2)
@@ -74,9 +69,6 @@ void	pay(Customer* pCustomer)
 	free(pCustomer->pCart);
 	pCustomer->pCart = NULL;
 }
-
-
-
 
 int isCustomer(const Customer* pCust, const char* name)
 {
@@ -111,7 +103,7 @@ eSortAttribute getCustomerSortAttribute()
 
 void writeCustomerToFile(Customer* pCustomer, FILE* file)
 {
-	size_t uNameLength = strlen(pCustomer->name) + 1; // +1 for /0
+	size_t uNameLength = strlen(pCustomer->name) + 1; // +1 for \0
 	fprintf(file, "%zu %s\n%d %f\n", uNameLength, pCustomer->name, pCustomer->shopTimes, pCustomer->totalSpend);
 }
 
