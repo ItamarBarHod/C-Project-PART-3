@@ -1,7 +1,11 @@
-3
-4 bar
+5
+bar
 1 20.000000
-4 kar
+kar
 0 0.000000
-4 zar
+zar
+0 0.000000
+barrrrrrrrrrrrrrr
+0 0.000000
+karrrrrrrrrrrrrrrrrrrrrrrrrr
 0 0.000000

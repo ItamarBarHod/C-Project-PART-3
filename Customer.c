@@ -103,13 +103,19 @@ eSortAttribute getCustomerSortAttribute()
 
 void writeCustomerToFile(Customer* pCustomer, FILE* file)
 {
-	size_t uNameLength = strlen(pCustomer->name) + 1; // +1 for \0
-	fprintf(file, "%zu %s\n%d %f\n", uNameLength, pCustomer->name, pCustomer->shopTimes, pCustomer->totalSpend);
+	fprintf(file, "%s\n%d %f\n", pCustomer->name, pCustomer->shopTimes, pCustomer->totalSpend);
 }
 
 Customer* readCustomerFromFile(Customer* pCustomer, FILE* file)
 {
-	fscanf(file, "%s\n%d %f\n", pCustomer->name, &pCustomer->shopTimes, &pCustomer->totalSpend);
+	char name[MAX_STR_LEN] = { 0 };
+	fscanf(file, "%s\n", name);
+	pCustomer->name = _strdup(name);
+	if (!pCustomer->name)
+	{
+		return NULL;
+	}
+	fscanf(file, "%d %f\n", &pCustomer->shopTimes, &pCustomer->totalSpend);
 	pCustomer->pCart = NULL;
 	return pCustomer;
 }

@@ -603,22 +603,12 @@ int readCustomersFromFile(SuperMarket* pMarket, FILE* file)
 
 Customer* initCustomerFromFile(SuperMarket* pMarket, FILE* file)
 {
+	Customer* tempCustomer = (Customer*)malloc(sizeof(Customer));
+	if (!tempCustomer)
 	{
-		size_t customerNameLength = 0;
-		fscanf(file, "%zu", &customerNameLength);
-		Customer* tempCustomer = (Customer*)malloc(sizeof(Customer));
-		if (!tempCustomer)
-		{
-			printf("error initializing customer\n");
-			return 0;
-		}
-		tempCustomer->name = (char*)calloc(customerNameLength, sizeof(char));
-		if (!&tempCustomer->name)
-		{
-			printf("error initializing customer name from file\n");
-			return 0;
-		}
-		tempCustomer = readCustomerFromFile(tempCustomer, file);
-		return tempCustomer;
+		printf("error initializing customer\n");
+		return 0;
 	}
+	tempCustomer = readCustomerFromFile(tempCustomer, file);
+	return tempCustomer;
 }
