@@ -11,7 +11,7 @@ void	printItem(const ShoppingItem* pItem)
 	printf("Item %s count %d price per item %.2f\n", pItem->barcode, pItem->count, pItem->price);
 }
 
-ShoppingItem*	createItem(const char* barcode, float price, int count)
+ShoppingItem* createItem(const char* barcode, float price, int count)
 {
 	ShoppingItem* pItem = (ShoppingItem*)malloc(1 * sizeof(ShoppingItem));
 	if (!pItem)
@@ -20,4 +20,10 @@ ShoppingItem*	createItem(const char* barcode, float price, int count)
 	pItem->price = price;
 	pItem->count = count;
 	return pItem;
+}
+
+void freeShoppingItem(void* pItem)
+{
+	ShoppingItem* item = *(ShoppingItem**)pItem;
+	free(item);
 }
